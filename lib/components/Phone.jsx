@@ -54,7 +54,7 @@ export default class Phone extends React.Component
 			<TransitionAppear duration={1000}>
 				<div data-component='Phone'>
 					<header>
-						<div className='topbar'>
+						{/* <div className='topbar' style={{hidden:true}}>
 							<Logo
 								size='small'
 							/>
@@ -87,7 +87,7 @@ export default class Phone extends React.Component
 									onClick={this.handleMenuExit.bind(this)}
 								/>
 							</IconMenu>
-						</div>
+						</div> */}
 
 						<Dialer
 							settings={props.settings}
@@ -361,7 +361,7 @@ export default class Phone extends React.Component
 				mediaConstraints :
 				{
 					audio : true,
-					video : true
+					video : false
 				},
 				rtcOfferConstraints :
 				{

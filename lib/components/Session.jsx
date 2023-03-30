@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import HangUpIcon from 'material-ui/svg-icons/communication/call-end';
-import PauseIcon from 'material-ui/svg-icons/av/pause-circle-outline';
+import PauseIcon from 'material-ui/svg-icons/av/pause';
 import ResumeIcon from 'material-ui/svg-icons/av/play-circle-outline';
 import classnames from 'classnames';
 import JsSIP from 'jssip';
@@ -23,7 +23,10 @@ export default class Session extends React.Component
 			localHold      : false,
 			remoteHold     : false,
 			canHold        : false,
-			ringing        : false
+			ringing        : false,
+			running: false,
+			currentTimeSec: 0,
+			currentTimeMin: 0,
 		};
 
 		// Mounted flag
@@ -49,43 +52,43 @@ export default class Session extends React.Component
 		else if (state.remoteHold)
 			noRemoteVideo = <div className='message'>remote hold</div>;
 		else if (!state.remoteHasVideo)
-			noRemoteVideo = <div className='message'>no remote video</div>;
+			noRemoteVideo = <div className='message'>{state.currentTimeMin}:{state.currentTimeSec}</div>;
 
 		return (
 			<TransitionAppear duration={1000}>
 				<div data-component='Session'>
 					<video
 						ref='localVideo'
-						className={classnames('local-video', { hidden: !state.localHasVideo })}
+						className={classnames('local-video', { hidden: true })}
 						autoPlay
 						muted
 					/>
 
 					<video
 						ref='remoteVideo'
-						className={classnames('remote-video', { hidden: noRemoteVideo })}
+						className={classnames('remote-video', { hidden: true })}
 						autoPlay
 					/>
 
-					<If condition={noRemoteVideo}>
-						<div className='no-remote-video-info'>
-							{noRemoteVideo}
-						</div>
-					</If>
+
 
 					<div className='controls-container'>
 						<div className='controls'>
 							<HangUpIcon
 								className='control'
-								color={'#fff'}
+								color={'red'}
 								onClick={this.handleHangUp.bind(this)}
 							/>
-
+							<If condition={noRemoteVideo}>
+								<div className='no-remote-video-info'>
+									{noRemoteVideo}
+								</div>
+							</If>
 							<Choose>
 								<When condition={!state.localHold}>
 									<PauseIcon
 										className='control'
-										color={'#fff'}
+										color={'gray'}
 										onClick={this.handleHold.bind(this)}
 									/>
 								</When>
@@ -93,7 +96,7 @@ export default class Session extends React.Component
 								<Otherwise>
 									<ResumeIcon
 										className='control'
-										color={'#fff'}
+										color={'#000'}
 										onClick={this.handleResume.bind(this)}
 									/>
 								</Otherwise>
@@ -183,6 +186,7 @@ export default class Session extends React.Component
 			}
 
 			this.setState({ canHold: true, ringing: false });
+			this.start();
 		});
 
 		session.on('failed', (data) =>
@@ -219,6 +223,7 @@ export default class Session extends React.Component
 
 			if (session.direction === 'outgoing')
 				this.setState({ ringing: false });
+			this.stop();
 		});
 
 		session.on('hold', (data) =>
@@ -363,6 +368,29 @@ export default class Session extends React.Component
 
 		this.setState({ remoteHasVideo: Boolean(videoTrack) });
 	}
+
+	start() {
+		if (!this.state.running) {
+			this.setState({ running: true });
+			this.watch = setInterval(() => this.pace(), 1000);
+		}
+	};
+
+	stop() {
+		this.setState({ running: false });
+		clearInterval(this.watch);
+	};
+
+	pace = () => {
+
+		this.setState({ currentTimeSec: this.state.currentTimeSec + 1 });
+		this.setState({ currentTimeMs: 0 });
+		
+		if (this.state.currentTimeSec >= 60) {
+		  this.setState({ currentTimeMin: this.state.currentTimeMin + 1 });
+		  this.setState({ currentTimeSec: 0 });
+		}
+	  };
 }
 
 Session.propTypes =
