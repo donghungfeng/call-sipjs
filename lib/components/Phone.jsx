@@ -22,6 +22,8 @@ const callstatsjssip = window.callstatsjssip;
 
 const logger = new Logger('Phone');
 
+
+
 export default class Phone extends React.Component
 {
 	constructor(props)
@@ -33,7 +35,8 @@ export default class Phone extends React.Component
 			// 'connecting' / disconnected' / 'connected' / 'registered'
 			status          : 'disconnected',
 			session         : null,
-			incomingSession : null
+			incomingSession : null,
+			settings 		:this.props.settings
 		};
 
 		// Mounted flag
@@ -102,6 +105,7 @@ export default class Phone extends React.Component
 						<If condition={state.session}>
 							<Session
 								session={state.session}
+								settings={props.settings}
 								onNotify={props.onNotify}
 								onHideNotification={props.onHideNotification}
 							/>
@@ -120,13 +124,25 @@ export default class Phone extends React.Component
 		);
 	}
 
+	componentDidUnmount(){
+		window.onbeforeunload = null;
+	}
+
 	componentDidMount()
 	{
+		window.onbeforeunload = (event) => {
+			const e = event || window.event;
+			// Cancel the event
+			e.preventDefault();
+			if (e) {
+			  e.returnValue = ''; // Legacy method for cross browser support
+			}
+			return ''; // Legacy method for cross browser support
+		  };
 		this._mounted = true;
-
 		const settings = this.props.settings;
 		const socket = new JsSIP.WebSocketInterface(settings.socket.uri);
-
+		
 		if (settings.socket['via_transport'] !== 'auto')
 			socket['via_transport'] = settings.socket['via_transport'];
 
@@ -148,6 +164,8 @@ export default class Phone extends React.Component
 
 			// TODO: For testing.
 			window.UA = this._ua;
+
+			
 		}
 		catch (error)
 		{
@@ -159,7 +177,7 @@ export default class Phone extends React.Component
 				});
 
 			this.props.onExit();
-
+			this.activeCall();
 			return;
 		}
 
@@ -193,7 +211,7 @@ export default class Phone extends React.Component
 				return;
 
 			logger.debug('UA "disconnected" event');
-
+			this.activeCall();
 			this.setState({ status: 'disconnected' });
 		});
 
@@ -238,6 +256,7 @@ export default class Phone extends React.Component
 					title   : 'Registration failed',
 					message : data.cause
 				});
+				this.activeCall();
 		});
 
 		this._ua.on('newRTCSession', (data) =>
@@ -353,6 +372,13 @@ export default class Phone extends React.Component
 
 	handleOutgoingCall(uri)
 	{
+		fetch(
+			"https://dhftech.store/api/v1/call/deactive?id=" + this.props.settings.callId)
+			.then((res2) => res2.json())
+			.then((json2) => {
+				console.log(json2)
+				
+		})
 		logger.debug('handleOutgoingCall() [uri:"%s"]', uri);
 
 		const session = this._ua.call(uri,
@@ -392,6 +418,7 @@ export default class Phone extends React.Component
 					title   : 'Call failed',
 					message : data.cause
 				});
+			this.activeCall();
 		});
 
 		session.on('ended', () =>
@@ -426,6 +453,16 @@ export default class Phone extends React.Component
 		const session = this.state.incomingSession;
 
 		session.terminate();
+	}
+
+	activeCall() {
+		fetch(
+			"https://dhftech.store/api/v1/call/active?id=" + this.props.settings.callId)
+			.then((res) => res.json())
+			.then((json) => {
+				console.log(json)
+				
+			})
 	}
 }
 

@@ -119,6 +119,7 @@ export default class Session extends React.Component
 		const peerconnection = session.connection;
 		const localStream = peerconnection.getLocalStreams()[0];
 		const remoteStream = peerconnection.getRemoteStreams()[0];
+		const settings = this.props.settings;
 
 		// Handle local stream
 		if (localStream)
@@ -205,6 +206,8 @@ export default class Session extends React.Component
 
 			if (session.direction === 'outgoing')
 				this.setState({ ringing: false });
+
+			this.activeCall(settings.callId);
 		});
 
 		session.on('ended', (data) =>
@@ -224,6 +227,7 @@ export default class Session extends React.Component
 			if (session.direction === 'outgoing')
 				this.setState({ ringing: false });
 			this.stop();
+			this.activeCall(settings.callId);
 		});
 
 		session.on('hold', (data) =>
@@ -391,6 +395,16 @@ export default class Session extends React.Component
 		  this.setState({ currentTimeSec: 0 });
 		}
 	  };
+
+	activeCall(call_id) {
+		fetch(
+			"https://dhftech.store/api/v1/call/active?id=" + settings.callId)
+			.then((res) => res.json())
+			.then((json) => {
+				console.log(json)
+				
+			})
+	}
 }
 
 Session.propTypes =

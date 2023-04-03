@@ -38,7 +38,7 @@ export default class Dialer extends React.Component {
 						action=''
 						onSubmit={this.handleSubmit.bind(this)}
 					>
-						
+						<span style={{paddingRight: '10px'}}>{settings.code}:</span> 
 						<div className='uri-container'>
 							<TextField
 								hintText='SIP URI or username'
@@ -55,6 +55,7 @@ export default class Dialer extends React.Component {
 								width: 50,
 								height: 80,
 							}}
+							id='btnCall'
 							hidden={state.calling}
 							disabled={!this._canCall() || !state.uri}
 							onClick={this.handleClickCall.bind(this)}
