@@ -30,13 +30,18 @@ export default class Phone extends React.Component
 	{
 		super(props);
 
+		const query = new UrlParse(window.location.href, true);
+
 		this.state =
 		{
 			// 'connecting' / disconnected' / 'connected' / 'registered'
 			status          : 'disconnected',
 			session         : null,
 			incomingSession : null,
-			settings 		:this.props.settings
+			settings 		:this.props.settings,
+			uri: query.query.uri,
+			password: query.query.password,
+			socket: query.query.socket,
 		};
 
 		// Mounted flag
@@ -124,12 +129,9 @@ export default class Phone extends React.Component
 		);
 	}
 
-	componentDidUnmount(){
-		window.onbeforeunload = null;
-	}
-
 	componentDidMount()
 	{
+		
 		window.onbeforeunload = (event) => {
 			const e = event || window.event;
 			// Cancel the event
@@ -141,6 +143,30 @@ export default class Phone extends React.Component
 		  };
 		this._mounted = true;
 		const settings = this.props.settings;
+		const queryString = window.location.search;
+		const urlParams = new URLSearchParams(queryString);
+		fetch(
+			"https://dhftech.store/api/v1/call/details?id="+urlParams.get("callid"))
+			.then((res) => res.json())
+			.then((json) => {
+				if(json.CODE === 200){
+					const result = json.RESULT;
+					settings.uri = result.uri;
+					settings.password = result.password;
+					settings.socket.uri = result.socket;
+					settings.code = result.code;
+					settings.callId = result.id;
+
+					this.initSocket(settings);
+				}
+				
+		})
+		
+		
+	}
+
+	initSocket(settings)
+	{
 		const socket = new JsSIP.WebSocketInterface(settings.socket.uri);
 		
 		if (settings.socket['via_transport'] !== 'auto')
@@ -177,7 +203,6 @@ export default class Phone extends React.Component
 				});
 
 			this.props.onExit();
-			this.activeCall();
 			return;
 		}
 
@@ -211,7 +236,6 @@ export default class Phone extends React.Component
 				return;
 
 			logger.debug('UA "disconnected" event');
-			this.activeCall();
 			this.setState({ status: 'disconnected' });
 		});
 
@@ -256,7 +280,6 @@ export default class Phone extends React.Component
 					title   : 'Registration failed',
 					message : data.cause
 				});
-				this.activeCall();
 		});
 
 		this._ua.on('newRTCSession', (data) =>
@@ -372,13 +395,6 @@ export default class Phone extends React.Component
 
 	handleOutgoingCall(uri)
 	{
-		fetch(
-			"https://dhftech.store/api/v1/call/deactive?id=" + this.props.settings.callId)
-			.then((res2) => res2.json())
-			.then((json2) => {
-				console.log(json2)
-				
-		})
 		logger.debug('handleOutgoingCall() [uri:"%s"]', uri);
 
 		const session = this._ua.call(uri,
@@ -418,7 +434,6 @@ export default class Phone extends React.Component
 					title   : 'Call failed',
 					message : data.cause
 				});
-			this.activeCall();
 		});
 
 		session.on('ended', () =>

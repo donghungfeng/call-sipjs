@@ -18,7 +18,7 @@ export default class App extends React.Component
 
 		this.state =
 		{
-			step            : settingsManager.isReady() ? 'phone' : 'login',
+			step            : 'phone' ,
 			settings        : settingsManager.get(),
 			showSnackbar    : false,
 			snackbarMessage : null

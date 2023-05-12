@@ -206,8 +206,6 @@ export default class Session extends React.Component
 
 			if (session.direction === 'outgoing')
 				this.setState({ ringing: false });
-
-			this.activeCall(settings.callId);
 		});
 
 		session.on('ended', (data) =>
@@ -227,7 +225,6 @@ export default class Session extends React.Component
 			if (session.direction === 'outgoing')
 				this.setState({ ringing: false });
 			this.stop();
-			this.activeCall(settings.callId);
 		});
 
 		session.on('hold', (data) =>
