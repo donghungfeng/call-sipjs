@@ -41,7 +41,7 @@ export default class Dialer extends React.Component {
 						<span style={{paddingRight: '10px'}}>{settings.code}:</span> 
 						<div className='uri-container'>
 							<TextField
-								hintText='SIP URI or username'
+								hintText='Phone'
 								fullWidth
 								disabled={false}
 								value={state.uri}
