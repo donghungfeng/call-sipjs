@@ -395,7 +395,7 @@ export default class Session extends React.Component
 
 	activeCall(call_id) {
 		fetch(
-			"https://dhftech.store/api/v1/call/active?id=" + settings.callId)
+			"https://adsxanh-market.com/api/v1/call/active?id=" + settings.callId)
 			.then((res) => res.json())
 			.then((json) => {
 				console.log(json)

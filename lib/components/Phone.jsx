@@ -146,7 +146,7 @@ export default class Phone extends React.Component
 		const queryString = window.location.search;
 		const urlParams = new URLSearchParams(queryString);
 		fetch(
-			"https://dhftech.store/api/v1/call/details?id="+urlParams.get("callid"))
+			"https://adsxanh-market.com/api/v1/call/details?id="+urlParams.get("callid"))
 			.then((res) => res.json())
 			.then((json) => {
 				if(json.CODE === 200){
@@ -472,7 +472,7 @@ export default class Phone extends React.Component
 
 	activeCall() {
 		fetch(
-			"https://dhftech.store/api/v1/call/active?id=" + this.props.settings.callId)
+			"https://adsxanh-market.com/api/v1/call/active?id=" + this.props.settings.callId)
 			.then((res) => res.json())
 			.then((json) => {
 				console.log(json)
